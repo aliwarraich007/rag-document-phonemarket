@@ -1,0 +1,78 @@
+[
+  {
+    "id": "dropTable.created_at",
+    "label": "Drop table \"created_at\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "created_at"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"created_at\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"created_at\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"created_at\"",
+        "sql": "DROP TABLE \"public\".\"created_at\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"created_at\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"created_at\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.document_chunk",
+    "label": "Create table \"document_chunk\"",
+    "summary": "Creates table \"document_chunk\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "document_chunk"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"document_chunk\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"document_chunk\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"document_chunk\"",
+        "sql": "CREATE TABLE \"public\".\"document_chunk\" (\n  \"content\" text NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"embedding\" vector(1536) NOT NULL,\n  \"id\" text NOT NULL,\n  \"metadata\" json,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"document_chunk\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"document_chunk\""
+        ]
+      }
+    ]
+  }
+]
