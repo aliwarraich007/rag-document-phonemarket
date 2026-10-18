@@ -1,54 +1,100 @@
 "use client";
 
+import { ChatWindow } from "@/features/chat/chat";
 import { useChat } from "@ai-sdk/react";
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
+import { ArrowUpIcon, SquareIcon } from "lucide-react";
+
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<div>Loading chat...</div>}>
+    <Suspense fallback={<div className="p-6 text-sm">Loading chat...</div>}>
       <Chat />
     </Suspense>
   );
 }
 
 function Chat() {
-  const [input, setInput] = useState("");
-  const { messages, sendMessage } = useChat();
+  const [text, setText] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const { messages, sendMessage, status, stop, error } = useChat();
+
+  const isBusy = status === "submitted" || status === "streaming";
+  const canSend = text.trim().length > 0 && !isBusy;
+
+  function onSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canSend) return;
+    sendMessage({ text: text.trim() });
+    setText("");
+  }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col py-24">
-      {messages.map((message) => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          {message.role === "user" ? "User: " : "AI: "}
+    <div className="flex h-dvh flex-col bg-background">
+      <ChatWindow
+        messages={messages}
+        status={status}
+        error={error}
+        onSuggestion={(suggestion) => sendMessage({ text: suggestion })}
+      />
 
-          {message.parts.map((part, i) => {
-            switch (part.type) {
-              case "text":
-                return <div key={`${message.id}-${i}`}>{part.text}</div>;
-              default:
-                return null;
-            }
-          })}
-        </div>
-      ))}
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          if (!input.trim()) return;
-
-          sendMessage({ text: input });
-          setInput("");
-        }}
-      >
-        <input
-          className="fixed bottom-0 mb-8 w-full max-w-md rounded border border-zinc-300 p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
-          value={input}
-          placeholder="Say something..."
-          onChange={(e) => setInput(e.currentTarget.value)}
-        />
-      </form>
+      <div className="mx-auto w-full max-w-2xl py-12 pt-2 ">
+        <form
+          ref={formRef}
+          onSubmit={onSubmit}
+          className=" p-4 ring-2 ring-border focus-within:ring-border/50 rounded-2xl shadow-sm"
+        >
+          <InputGroup className="">
+            <InputGroupTextarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="Message the assistant"
+              aria-label="Message"
+              rows={1}
+              onKeyDown={(event) => {
+                // Don't submit while an IME is composing (e.g. Japanese, Chinese).
+                if (event.nativeEvent.isComposing) return;
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  formRef.current?.requestSubmit();
+                }
+              }}
+              className="max-h-48 min-h-0 p-3 field-sizing-content"
+            />
+            <InputGroupAddon align="block-end" className="justify-between">
+              {isBusy ? (
+                <InputGroupButton
+                  type="button"
+                  size="icon-sm"
+                  variant="default"
+                  className="rounded-full"
+                  onClick={stop}
+                  aria-label="Stop generating"
+                >
+                  <SquareIcon className="fill-current" />
+                </InputGroupButton>
+              ) : (
+                <InputGroupButton
+                  type="submit"
+                  size="icon-sm"
+                  variant="default"
+                  className="rounded-full"
+                  disabled={!canSend}
+                  aria-label="Send message"
+                >
+                  <ArrowUpIcon />
+                </InputGroupButton>
+              )}
+            </InputGroupAddon>
+          </InputGroup>
+        </form>
+      </div>
     </div>
   );
 }
