@@ -1,6 +1,7 @@
 import { UIMessage, createUIMessageStreamResponse } from "ai";
 import { ChatGoogle } from "@langchain/google";
 import { toBaseMessages, toUIMessageStream } from "@ai-sdk/langchain";
+import { readDocument } from "@/@core/helpers/read-document";
 
 export async function POST(req: Request) {
   // messages & histroy of AI + User of type UIMessages from Vercel SDK
@@ -19,6 +20,12 @@ export async function POST(req: Request) {
   // Grounding answers in real documents is what does that,
   //  and that’s what RAG is for. For a support bot,
   //  0.2 to 0.3 is a sensible default.
+
+  const documents = await readDocument();
+
+  documents?.forEach((file) => {
+    console.log(file.content);
+  });
 
   const model = new ChatGoogle({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
