@@ -1,6 +1,5 @@
 import type { UIMessage } from "ai";
 import { AlertCircleIcon } from "lucide-react";
-
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Message, MessageContent } from "@/components/ui/message";
 import {

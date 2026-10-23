@@ -1,5 +1,4 @@
-import { readDocument } from "@/@core/helpers/read-document";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { readDocument } from "@/@core/helpers/document-processor";
 
 export async function POST(req: Request) {
   try {
@@ -11,18 +10,19 @@ export async function POST(req: Request) {
 
     const firstdocument = documents[0];
 
-    const embeddings = new GoogleGenerativeAIEmbeddings({
-      model: "gemini-embedding-2",
-      outputDimensionality: 1536,
+    // const embeddings = new GoogleGenerativeAIEmbeddings({
+    //   model: "gemini-embedding-2",
+    //   outputDimensionality: 1536,
+    // });
+
+    // const vectors = embeddings.embedDocuments([...firstdocument.content]);
+    // console.log(vectors);
+
+    return Response.json({
+      message: "vectorized",
     });
-
-    const vectors = embeddings.embedDocuments([...firstdocument.content]);
-    console.log(vectors);
-
-    return {
-      message: "Document embedding successfull",
-    };
   } catch (err) {
     console.error("ERROR WHILE CREATING CHUNKING AND EMBEDDING: ", err);
+    return Response.error();
   }
 }
