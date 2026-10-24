@@ -1,3 +1,4 @@
+import "server-only";
 import { readdir, readFile } from "fs/promises";
 import path from "path";
 import { Chunk } from "../interface";
@@ -28,25 +29,20 @@ const split = [{ "#": "header 1" }, { "##": "header 2" }];
 function splitText(
   file: { fileName: string; content: string },
   size: number,
-): Chunk {
-  let currentLength = file.content.length;
+): Chunk[] {
+  const chunks: Chunk[] = [];
 
-  if (currentLength < size)
-    return {
-      content: file.content,
-      metadata: {
-        source: file.fileName,
-        heading: "",
-      },
-    };
+  let title = "";
 
-  return {
-    content: file.content,
-    metadata: {
-      source: file.fileName,
-      heading: "",
-    },
-  };
+  const sections = file.content.split("##");
+
+  if (!title.length && sections[0].length > 0) {
+    title = sections[0];
+  }
+
+  console.log(sections);
+
+  return chunks;
 }
 
 export async function chunkDocument(chunkLength: number) {
@@ -54,11 +50,14 @@ export async function chunkDocument(chunkLength: number) {
     if (chunkLength < 0) throw new Error("Please enter a valid chunk length");
 
     const documents = await readDocument();
+
     if (!documents || !documents.length) throw new Error("No data to read");
 
-    const chunkedDocuments = documents.map((f) => splitText(f, chunkLength));
+    const testDocument = documents[0];
 
-    // md file here
+    splitText(testDocument, chunkLength);
+
+    // documents.map((f) => splitText(f, chunkLength));
   } catch (err) {
     console.error("Error while chunking: ", err);
   }
