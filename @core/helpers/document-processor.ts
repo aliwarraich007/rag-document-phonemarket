@@ -24,25 +24,50 @@ export async function readDocument() {
   }
 }
 
-const split = [{ "#": "header 1" }, { "##": "header 2" }];
-
 function splitText(
   file: { fileName: string; content: string },
   size: number,
 ): Chunk[] {
   const chunks: Chunk[] = [];
 
-  let title = "";
+  const [titlePiece, ...sectionPieces] = file.content.split(/^## /m);
+  const title = titlePiece.replace(/^#\s*/, "").trim();
 
-  const sections = file.content.split("##");
+  for (const piece of sectionPieces) {
+    const newline = piece.indexOf("\n");
+    const heading = (newline === -1 ? piece : piece.slice(0, newline)).trim();
+    const body = newline === -1 ? "" : piece.slice(newline).trim();
 
-  if (!title.length && sections[0].length > 0) {
-    title = sections[0];
+    if (body.length >= size) {
+    }
+    chunks.push({
+      content: `# ${title}\n## ${heading}\n\n${body}`,
+      metadata: { source: file.fileName, title, heading, index: chunks.length },
+    });
   }
-
-  console.log(sections);
-
   return chunks;
+}
+
+function recursivePackChunks(chunks: Chunk[], size: number) {
+  const newChunk: Chunk[] = [];
+  for (const chunk of chunks) {
+    const content = chunk.content;
+
+    if (content.length > size) {
+      const [titleAndQuestion, text] = content.split("## ");
+      const chunkedText = text.split(".");
+
+      const newText = `${titleAndQuestion} ## ${chunkedText}`;
+
+      newChunk.push({
+        content: newText,
+        metadata: {
+          ...chunk.metadata,
+        },
+      });
+    }
+  }
+  recursivePackChunks(newChunk, size);
 }
 
 export async function chunkDocument(chunkLength: number) {
@@ -55,7 +80,8 @@ export async function chunkDocument(chunkLength: number) {
 
     const testDocument = documents[0];
 
-    splitText(testDocument, chunkLength);
+    const r = splitText(testDocument, chunkLength);
+    console.log(r);
 
     // documents.map((f) => splitText(f, chunkLength));
   } catch (err) {
