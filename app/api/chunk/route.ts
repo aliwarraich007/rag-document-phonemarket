@@ -1,20 +1,28 @@
 import { chunkDocument } from "@/@core/helpers/document-processor";
-import { db } from "@/lib/integrations/prisma/db";
+import { db } from "@/lib/db";
+import { documentChunks } from "@/lib/db/schema";
+
 import { createGoogle } from "@ai-sdk/google";
 import { embedMany } from "ai";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   try {
     const chunks = await chunkDocument(800);
 
-    const values = chunks.map((c) => c.content);
+    if (chunks.length === 0) {
+      return Response.json({
+        chunks: 0,
+        dimension: 1536,
+      });
+    }
 
     const google = createGoogle({
       apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
     });
+
     const { embeddings } = await embedMany({
       model: google.embeddingModel("gemini-embedding-2"),
-      values,
+      values: chunks.map((chunk) => chunk.content),
       providerOptions: {
         google: {
           outputDimensionality: 1536,
@@ -22,43 +30,36 @@ export async function POST(req: Request) {
       },
     });
 
-    if (values.length !== embeddings.length)
+    if (
+      embeddings.length !== chunks.length ||
+      embeddings.some((embedding) => embedding.length !== 1536)
+    ) {
       throw new Error("Invalid embedding generation");
+    }
 
-    // Build queries OUTSIDE the transaction using db.raw.sql
-    const deleteQuery = db.raw.sql`DELETE FROM document_chunk`
-      .affectedCount()
-      .build();
+    const records = chunks.map((chunk, index) => ({
+      id: crypto.randomUUID(),
+      content: chunk.content,
+      embedding: embeddings[index],
+      metadata: chunk.metadata,
+    }));
 
     await db.transaction(async (tx) => {
-      // Execute the pre-built query INSIDE the transaction
-      await tx.execute(deleteQuery);
+      await tx.delete(documentChunks);
 
-      for (let i = 0; i < chunks.length; i++) {
-        const vector = `[${embeddings[i].join(",")}]`;
-
-        const insertQuery = db.raw.sql`
-      INSERT INTO document_chunk (id, content, embedding, metadata)
-      VALUES (
-        ${crypto.randomUUID()},
-        ${chunks[i].content},
-        ${vector}::vector,
-        ${JSON.stringify(chunks[i].metadata)}::jsonb
-      )
-    `
-          .affectedCount()
-          .build();
-
-        await tx.execute(insertQuery);
-      }
+      await tx.insert(documentChunks).values(records);
     });
 
     return Response.json({
       chunks: chunks.length,
       dimension: embeddings[0].length,
     });
-  } catch (err) {
-    console.error("ERROR WHILE CREATING CHUNKING AND EMBEDDING: ", err);
-    return Response.error();
+  } catch (error) {
+    console.error("ERROR WHILE CREATING CHUNKS AND EMBEDDINGS:", error);
+
+    return Response.json(
+      { error: "Failed to create document embeddings" },
+      { status: 500 },
+    );
   }
 }
