@@ -1,22 +1,27 @@
-import { readDocument } from "@/@core/helpers/document-processor";
+import { chunkDocument } from "@/@core/helpers/document-processor";
+import { createGoogle } from "@ai-sdk/google";
+import { embedMany } from "ai";
 
 export async function POST(req: Request) {
   try {
-    // reads all documents in lib/data/
-    const documents = await readDocument();
-    if (!documents || !documents.length) throw new Error("No data to read");
-    // for now lets create embedding of only 1 document;
-    // question: do we need to chunk this data? if yes? why and how?
+    const chunks = await chunkDocument(800);
 
-    const firstdocument = documents[0];
+    const values = chunks.map((c) => c.content);
 
-    // const embeddings = new GoogleGenerativeAIEmbeddings({
-    //   model: "gemini-embedding-2",
-    //   outputDimensionality: 1536,
-    // });
+    const google = createGoogle({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+    });
+    const { embeddings } = await embedMany({
+      model: google.embeddingModel("gemini-embedding-2"),
+      values,
+      providerOptions: {
+        google: {
+          outputDimensionality: 1536,
+        },
+      },
+    });
 
-    // const vectors = embeddings.embedDocuments([...firstdocument.content]);
-    // console.log(vectors);
+    console.log(embeddings);
 
     return Response.json({
       message: "vectorized",
