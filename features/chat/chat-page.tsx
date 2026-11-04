@@ -28,7 +28,7 @@ export function Chat() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      <IngestComponent />
+      {/* <IngestComponent /> */}
       <ChatWindow
         messages={messages}
         status={status}
