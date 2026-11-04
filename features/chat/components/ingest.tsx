@@ -12,14 +12,18 @@ export const IngestComponent = () => {
     setResult(null);
 
     try {
-      const res = await fetch("/api/chunk", { method: "POST" });
+      //const res = await fetch("/api/chunk", { method: "POST" });
+
+      const res = await fetch(`/api/search?q=wat is rtrn police?`, {
+        method: "POST",
+      });
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error ?? "Request failed");
       }
 
-      setResult(`Done: ${data.chunks} chunks, ${data.dimension} dimensions`);
+      //  setResult(`Done: ${data.chunks} chunks, ${data.dimension} dimensions`);
     } catch (err) {
       setResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {

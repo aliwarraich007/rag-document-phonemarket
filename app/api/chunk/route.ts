@@ -1,7 +1,6 @@
 import { chunkDocument } from "@/@core/helpers/document-processor";
 import { db } from "@/lib/db";
 import { documentChunks } from "@/lib/db/schema";
-
 import { createGoogle } from "@ai-sdk/google";
 import { embedMany } from "ai";
 

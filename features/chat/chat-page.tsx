@@ -9,7 +9,7 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import { useRef, useState } from "react";
-import { IngestComponent } from "../ingest/components/ingest";
+import { IngestComponent } from "./components/ingest";
 
 export function Chat() {
   const [text, setText] = useState("");
@@ -28,7 +28,7 @@ export function Chat() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* <IngestComponent /> */}
+      <IngestComponent />
       <ChatWindow
         messages={messages}
         status={status}
