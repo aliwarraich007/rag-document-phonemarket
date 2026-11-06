@@ -89,10 +89,3 @@
 - **Buying options:** Direct purchase; company-assisted checkout only if enabled on the listing
 - **Description:** An older iPhone model offered at a lower sample price. The sample battery health is below 80%; buyers should factor battery condition into their decision and ask about repairs or replacement history.
 
-## Catalogue answering rules
-
-1. These entries are sample data for retrieval tests. Never claim that a sample product is currently in stock or that its sample price is a live offer.
-2. For a live customer question, retrieve the current product/listing record before answering about price, availability, seller, PTA status, condition, battery health, or warranty.
-3. Do not infer PTA approval, warranty, battery health, accessories, or inspection status when the field says “not confirmed,” “not reported,” or “not specified.”
-4. Clarify whether the buyer wants a direct purchase or a company-assisted purchase, because inspection, delivery, and return terms may differ.
-5. Treat seller-reported attributes as claims until verified. The verified-seller badge describes seller verification, not independent verification of every product detail.

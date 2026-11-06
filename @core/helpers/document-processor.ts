@@ -2,6 +2,11 @@ import "server-only";
 import { readdir, readFile } from "fs/promises";
 import path from "path";
 import { Chunk } from "../interface";
+import { createGoogle } from "@ai-sdk/google";
+import { embed } from "ai";
+import { db } from "@/lib/db";
+import { sql } from "drizzle-orm";
+import { SearchRow } from "@/@core/types";
 
 export async function readDocument() {
   try {
@@ -143,4 +148,37 @@ export async function chunkDocument(chunkLength: number): Promise<Chunk[]> {
   const documents = await readDocument();
   if (!documents || !documents.length) throw new Error("No data to read");
   return documents.flatMap((f) => splitText(f, chunkLength));
+}
+
+export const google = createGoogle({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+});
+
+export async function retrieveChunks(question: string, limit: number = 5) {
+  if (!question.trim()) return [];
+
+  const { embedding } = await embed({
+    model: google.embeddingModel("gemini-embedding-2"),
+    value: question,
+    providerOptions: { google: { outputDimensionality: 1536 } },
+  });
+
+  const vector = `[${embedding.join(",")}]`;
+
+  const result = await db.execute(
+    sql`SELECT id, content, metadata,
+          1 - (embedding <=> ${vector}::vector) AS similarity
+        FROM document_chunk
+        ORDER BY embedding <=> ${vector}::vector
+        LIMIT ${limit}`,
+  );
+
+  const rows = (result as unknown as { rows: SearchRow[] }).rows;
+
+  return rows.map((r) => ({
+    content: r.content,
+    source: r.metadata.source,
+    heading: r.metadata.heading,
+    similarity: Number(Number(r.similarity).toFixed(3)),
+  }));
 }

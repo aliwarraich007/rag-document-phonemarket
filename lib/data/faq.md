@@ -59,7 +59,3 @@ Email **support@phonemarket.pk**. Include the order number or listing ID, a conc
 ## Is Phonemarket a phone manufacturer?
 
 No. Phonemarket is a marketplace and transaction facilitator. A phone may be listed by an individual, business, brand, or other eligible seller; the listing identifies the seller.
-
-## RAG response guidance
-
-If a question depends on an order-specific fact (price, stock, PTA status, warranty, return eligibility, delivery status, or seller identity), retrieve the current listing or order record. If the record is missing, say that the information cannot be confirmed and direct the user to support. Do not infer missing details.

@@ -1,7 +1,5 @@
 # Phonemarket Store Information
 
-**Last updated:** 21 October 2026
-
 ## Business overview
 
 Phonemarket is an online marketplace focused on buying and selling mobile phones in Pakistan. It supports individual sellers and registered businesses. Eligible company-assisted orders may be routed through Phonemarket for inspection before delivery.
@@ -35,7 +33,3 @@ The proposed initial service area is Pakistan, subject to courier coverage and t
 ## Safety and privacy
 
 Use the platform's secure flows for identity verification, payments, and order details. Do not send passwords or one-time passwords to support. Share CNIC details or a full IMEI only when necessary and through an approved secure channel.
-
-## RAG guidance
-
-If asked for a physical address, do not invent one. State that no public walk-in address is currently confirmed and direct the customer to support for the relevant order or appointment. If asked about current support availability, use the published schedule only after the business has verified it.
